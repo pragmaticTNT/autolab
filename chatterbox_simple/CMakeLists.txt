@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   tf
+  ca_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -74,6 +75,7 @@ generate_messages(
    nav_msgs
    sensor_msgs
    tf
+   ca_msgs
 )
 
 ################################################
@@ -108,7 +110,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES chatterbox_simple
-   CATKIN_DEPENDS tf geometry_msgs nav_msgs roscpp rospy sensor_msgs
+   CATKIN_DEPENDS ca_msgs tf geometry_msgs nav_msgs roscpp rospy sensor_msgs
 #  DEPENDS system_lib
 )
 
