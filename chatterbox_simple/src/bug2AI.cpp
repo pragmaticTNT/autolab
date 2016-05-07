@@ -8,11 +8,11 @@
 // ===> Switch Variables
 static const float sink_x = 7.0;                
 static const float sink_y = 7.0;
-static const float goalThreshould = 0.5;        // Acceptable error near goal
-static const float faceWallThreshould = 0.8;    // Distance to obstacle considered blocking
-static const float nearWallThreshould = 0.3;    // Distance in direction of sink considered free
+static const float goalThreshould = 1.5;        // Acceptable error near goal
+static const float wallThreshould = 0.8;    // Distance to obstacle considered blocking
+static const float stopDistance = 0.2;
 static const float angleThreshould = 0.2;
-static const int   extraRays = 8;               // Must be even. Check addition laser rays near target ray to reduce uncertainty
+static const int   extraRays = 40;         // Must be even. Check addition laser rays near target ray to reduce uncertainty
 static const float turnRate = 1.0;
 static const float moveRate = 1.0;
 
@@ -44,13 +44,13 @@ float getAngle(float xDist, float yDist){
 bool faceObstacle(const sensor_msgs::LaserScan::ConstPtr& laser){
     int midRange = ((laser -> ranges).size())/2;
     float midVal = (laser -> ranges)[midRange]; 
-    for(int i = 1; i <= extraRays/2; i++){          // average extra rays for redundancy
-        midVal +=   (laser->ranges)[midRange+i] + 
-                    (laser->ranges)[midRange-i]; 
+    for(int i = 1; i <= extraRays/2; i++){     // min of all rays for redundancy
+        midVal = std::min(midVal,
+                 std::min((laser->ranges)[midRange+i],
+                          (laser->ranges)[midRange-i])); 
     }
-    midVal /= (extraRays + 1);
-    //ROS_INFO("midVal: %.2f\n", midVal);
-    return midVal < faceWallThreshould;
+    //ROS_INFO("[Front Obstacle] midVal: %.2f\n", midVal);
+    return midVal < wallThreshould;
 }
 
 // PURPOSE: determine if the direction towards the goal is blocked
@@ -62,49 +62,61 @@ bool obstaclesInWay(float goalAngle, const sensor_msgs::LaserScan::ConstPtr& las
     int checkIndex = midRange + raysOffCenter;   
     float checkRay = (laser->ranges)[checkIndex];
     for (int i = 1; i <= extraRays/2; i++){
-        checkRay += (laser->ranges)[checkIndex+i] + (laser->ranges)[checkIndex-i];
+        checkRay = std::min(checkRay,
+                   std::min((laser->ranges)[checkIndex+i],
+                            (laser->ranges)[checkIndex-i]));
     }
-    checkRay /= (extraRays + 1);
-    //ROS_INFO("Ray: %.2f Goal Angle: %.2f OffCenter: %i\n", checkRay, goalAngle, raysOffCenter);
-    return checkRay < faceWallThreshould;
+    //ROS_INFO("[To Goal Obstacle] Ray: %.2f Goal Angle: %.2f OffCenter: %i\n", checkRay, goalAngle, raysOffCenter);
+    return checkRay < wallThreshould;
+}
+
+bool tooClose(const sensor_msgs::LaserScan::ConstPtr& laser){
+    int numRays = (laser->ranges).size();
+    for (int i = 0; i < numRays; i++){
+        if ( (laser->ranges)[i] < stopDistance )
+            return true;
+    }
+    return false;
 }
 
 void laserCallBack(const sensor_msgs::LaserScan::ConstPtr& laser){
-    geometry_msgs::Twist msg;
-    if (!atGoal && odomVal){
+    if (odomVal){
         float xx = (odomVal->pose).pose.position.x;
         float yy = (odomVal->pose).pose.position.y;
         float theta = tf::getYaw((odomVal->pose).pose.orientation);
         float goalDist = getDistance(xx, yy);
         float goalAngle = getAngle(xx, yy) - theta; 
         //ROS_INFO("Goal distance: %.2f\n", goalDist);
+    
+        geometry_msgs::Twist msg;
 
-        blocked = faceObstacle(laser);
-        if (goalDist < goalThreshould){
-            ROS_INFO("[At Goal!]\n");
-            atGoal = true;
-        } else {
-            msg.linear.x = (blocked && !goalSeek) ? 0 : moveRate;
-            if (goalSeek) {
-                if (fabs(goalAngle) > angleThreshould)
-                    msg.angular.z = (goalAngle > 0) ? turnRate : turnRate * (-1);
-                //ROS_INFO("[Seeking Goal] angleDiff:%.2f\n", goalAngle);
-                if(obstaclesInWay(goalAngle, laser))
-                    goalSeek = false;
+        if (!atGoal){
+            blocked = faceObstacle(laser);
+            if (goalDist < goalThreshould){
+                ROS_INFO("[At Goal!]\n");
+                atGoal = true;
             } else {
-                msg.angular.z = blocked ? turnRate : 0;
-                //ROS_INFO("[Wall Follow] theta: %.2f goalAngle: %.2f\n", theta, goalAngle);
-                if(!obstaclesInWay(goalAngle, laser))
-                    goalSeek = true;
+                msg.linear.x = (!blocked && !tooClose(laser)) ? moveRate : 0;
+                if (goalSeek) {
+                    if (fabs(goalAngle) > angleThreshould)
+                        msg.angular.z = (goalAngle > 0) ? turnRate : turnRate * (-1);
+                    //ROS_INFO("[Seeking Goal] angleDiff:%.2f blocked: %i\n", goalAngle, blocked);
+                    if(blocked || obstaclesInWay(goalAngle, laser))
+                        goalSeek = false;
+                } else {
+                    msg.angular.z = blocked ? turnRate : 0;
+                    //ROS_INFO("[Wall Follow] theta: %.2f goalAngle: %.2f blocked: %i\n", theta, goalAngle, blocked);
+                    if(!obstaclesInWay(goalAngle, laser))
+                        goalSeek = true;
+                }
             }
+        } else if (goalDist < goalThreshould){
+            blocked = faceObstacle(laser);
+            if (!blocked)
+                msg.linear.x = moveRate;
+            //ROS_INFO("[At Goal!] faceObstacle: %i\n", blocked);  
         }
         cmd_velPub.publish(msg);
-    } else if (atGoal){
-        blocked = faceObstacle(laser);
-        if (!blocked)
-            msg.linear.x = moveRate;
-        cmd_velPub.publish(msg);
-        //ROS_INFO("[At Goal!] faceObstacle: %i\n", blocked);
     }
 }
 
