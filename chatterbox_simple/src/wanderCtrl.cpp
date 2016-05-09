@@ -69,7 +69,7 @@ void laserCallBack(const sensor_msgs::LaserScan::ConstPtr& laser){
 int main(int argc, char **argv){
     ros::init(argc, argv, "wanderCtrl");
     ros::NodeHandle n;
-    ros::Subscriber laserSub = n.subscribe("base_scan", 100, laserCallBack);
+    ros::Subscriber laserSub = n.subscribe("scan", 100, laserCallBack);
     cmd_velPub = n.advertise<geometry_msgs::Twist>("cmd_vel", 100);
     ros::spin();
     return 0;
