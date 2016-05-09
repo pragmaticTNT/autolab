@@ -11,9 +11,9 @@
         <arg name="robot_name" value="robot_2" />
     </include>
 
-<!--
     <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
         <arg name="robot_name" value="robot_3" />
     </include>
+<!--
 -->
 </launch>

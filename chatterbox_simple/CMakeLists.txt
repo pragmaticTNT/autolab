@@ -69,14 +69,14 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-   nav_msgs
-   sensor_msgs
-   tf
-   ca_msgs
-)
+#generate_messages(
+#   DEPENDENCIES
+#   geometry_msgs
+#   nav_msgs
+#   sensor_msgs
+#   tf
+#   ca_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -208,3 +208,7 @@ add_dependencies(bug2AI chatterbox_simple_generate_messages_cpp)
 add_executable(simpleMove src/simpleMove.cpp)
 target_link_libraries(simpleMove ${catkin_LIBRARIES})
 add_dependencies(simpleMove chatterbox_simple_generate_messages_cpp)
+
+add_executable(wanderCtrl src/wanderCtrl.cpp)
+target_link_libraries(wanderCtrl ${catkin_LIBRARIES})
+add_dependencies(wanderCtrl chatterbox_simple_generate_messages_cpp)
