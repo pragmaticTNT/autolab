@@ -54,11 +54,11 @@ void laserCallBack(const sensor_msgs::LaserScan::ConstPtr& laser){
         if (avoidCount < 1) {                   // Start turn
             avoidTurn = (minRight < minLeft) ? -turnRate : turnRate;
             avoidCount = rand() % avoidTime + avoidTime;
-            ROS_INFO("[Start Turn]\n");
+            //ROS_INFO("[Start Turn]\n");
         } else {                                // Keep turning
             msg.angular.z = avoidTurn; 
             avoidCount--;
-            ROS_INFO("[Keep Turning] rate: %.2f\n", avoidTurn);
+            //ROS_INFO("[Keep Turning] rate: %.2f\n", avoidTurn);
         }
     } else {
         msg.linear.x = moveRate;

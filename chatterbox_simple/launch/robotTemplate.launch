@@ -1,7 +1,7 @@
 <launch>
     <arg name="robot_name"/>
     <node pkg="chatterbox_simple" name="$(arg robot_name)" type="wanderCtrl" output="screen">
-        <remap from="base_scan" to="$(arg robot_name)/base_scan"/>
+        <remap from="scan" to="$(arg robot_name)/base_scan"/>
         <remap from="base_pose_ground_truth" to="$(arg robot_name)/base_pose_ground_truth"/>
         <remap from="cmd_vel" to="$(arg robot_name)/cmd_vel"/> 
     </node>
