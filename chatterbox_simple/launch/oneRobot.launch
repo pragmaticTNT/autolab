@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
+    <include file="$(find chatterbox_simple)/launch/actualTemplate.launch">
         <arg name="robot_name" value="" />
     </include>
 </launch>
