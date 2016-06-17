@@ -1,0 +1,8 @@
+<launch>
+    <arg name="world" default="simple"/>
+    <node   name="worldFile" 
+            type="stageros" 
+            pkg="stage_ros" 
+            args="$(find stage_ros)/world/$(arg world).world" 
+            output="screen" />
+</launch>

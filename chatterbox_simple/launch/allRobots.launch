@@ -1,19 +1,17 @@
 <launch>
+    <!-- Stage_ros World File -->
+    <include file="$(find chatterbox_simple)/launch/launchWorld.launch">
+        <arg name="world" value="simple" />
+    </include>
+
+    <!-- Launch Robot Controllers -->
     <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
         <arg name="robot_name" value="robot_0" />
     </include>
-
     <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
         <arg name="robot_name" value="robot_1" />
     </include>
-
     <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
         <arg name="robot_name" value="robot_2" />
     </include>
-
-    <include file="$(find chatterbox_simple)/launch/robotTemplate.launch">
-        <arg name="robot_name" value="robot_3" />
-    </include>
-<!--
--->
 </launch>
